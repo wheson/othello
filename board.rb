@@ -303,17 +303,17 @@ class Board
   def print_stone()
     mask = 1
     num = 0
-    puts "  A  B  C  D  E  F  G  H"
+    puts "  A B C D E F G H"
     while mask <= 0x8000000000000000
       if mask & 0x0101010101010101 != 0
         print "#{('1'.ord + num).chr} " 
       end
       if @white & mask != 0
-        print "●"
+        print "o"
       elsif @black & mask != 0
-        print "○"
+        print "x"
       else
-        print "・"
+        print "-"
       end
       print " "
 
