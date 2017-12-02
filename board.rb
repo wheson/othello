@@ -7,10 +7,10 @@ class Board
     @player_color = {1 => 'black', -1 => 'white'}
   end
   
-  def transfer_point_to_bit(coordinate)
-    split_array = coordinate.split("")
-    x = split_array[0].upcase.ord - 'A'.ord
-    y = split_array[1].ord - '1'.ord
+  def transfer_point_to_bit(coordinates)
+    split_array = coordinates.split("")
+    x = split_array[0].upcase.ord - 'A'.ord + 1
+    y = split_array[1].ord - '1'.ord + 1
     num = (y - 1) * 8 + (x - 1)
     1 << num
   end
@@ -22,8 +22,8 @@ class Board
     y = ''
     while mask <= 0x8000000000000000
       if bit & mask != 0
-        x = ((num % 8 + 1) + 'A'.ord).chr
-        y = ((num / 8 + 1) + '1'.ord).chr
+        x = ((num % 8) + 'A'.ord).chr
+        y = ((num / 8) + '1'.ord).chr
       end
       num += 1
       mask = mask << 1
@@ -129,8 +129,8 @@ class Board
     rev
   end
   
-  def put_stone(coordinate)
-    pos = transfer_point_to_bit(coordinate)
+  def put_stone(coordinates)
+    pos = transfer_point_to_bit(coordinates)
     
     if @turn_player == 1  
       rev = create_reverse_bit(@black, @white, pos)
@@ -224,8 +224,8 @@ class Board
   
   def is_game_end()
     if @black | @white == 0xffffffffffffffff \
-    && count_stone(@black) == 0 \
-    && count_stone(@white) == 0
+    || count_stone(@black) == 0 \
+    || count_stone(@white) == 0
       true
     else
       false
@@ -235,6 +235,14 @@ class Board
   def next_turn()
     @turn_player *= -1
     @turn += 1
+  end
+  
+  def count_movable_pos()
+    if @turn_player == 1
+      count_stone(create_movable_pos(@black, @white))
+    else
+      count_stone(create_movable_pos(@white, @black))
+    end
   end
 
   def print_movable_pos()
@@ -246,16 +254,16 @@ class Board
       mobility = create_movable_pos(@white, @black)
     end
     mask = 1
-    print "{"
+    coordinates_list = []
     while mask <= 0x8000000000000000
-      point = mobility & mask
-      if point != 0
-        coordinate = transfer_bit_to_point(point)
-        print "[#{coordinate}],"
+      bit_point = mobility & mask
+      if bit_point != 0
+        coordinates_list.push(transfer_bit_to_point(bit_point))
       end
       mask = mask << 1
     end
-    print "}\n"
+
+    p coordinates_list
   end
 
   def print_stone()
@@ -291,6 +299,17 @@ class Board
   end
 
   def print_result()
+    print_stone()
+    black_stone = count_stone(@black)
+    white_stone = count_stone(@white)
+    puts "black: #{black_stone}, white: #{white_stone}"
 
+    if black_stone > white_stone
+      puts "black win!"
+    elsif black_stone < white_stone
+      puts "white win!"
+    else
+      puts "draw"
+    end
   end
 end
