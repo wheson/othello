@@ -247,7 +247,6 @@ class Board
 
   def undo()
     if @turn == 1
-      puts "これ以上undoできません!"
       return false
     else
       @black = @pre_black.pop

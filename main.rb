@@ -12,7 +12,7 @@ if __FILE__ == $0
       if coordinates.ord == 'u'.ord 
         next_flag = board.undo()
         if next_flag == false
-          puts "undoできません!"
+          puts "これ以上undoできません!"
         else
           puts "undoしました"
         end
