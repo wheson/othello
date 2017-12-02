@@ -2,6 +2,8 @@ class Board
   def initialize()
     @white = 0x1008000000
     @black = 0x810000000
+    @pre_white = [0x1008000000]
+    @pre_black = [0x810000000]
     @turn = 1
     @turn_player = 1
     @player_color = {1 => 'black', -1 => 'white'}
@@ -131,12 +133,14 @@ class Board
   
   def put_stone(coordinates)
     pos = transfer_point_to_bit(coordinates)
-    
+        
     if @turn_player == 1  
       rev = create_reverse_bit(@black, @white, pos)
       if rev == 0
         return false
       end
+      @pre_black.push(@black)
+      @pre_white.push(@white)
       @black ^= pos | rev
       @white ^= rev
     else
@@ -144,9 +148,13 @@ class Board
       if rev == 0
         return false
       end
+      @pre_black.push(@black)
+      @pre_white.push(@white)
       @white ^= pos | rev
       @black ^= rev
     end
+    
+    next_turn()
     true
   end
   
@@ -236,6 +244,30 @@ class Board
     @turn_player *= -1
     @turn += 1
   end
+
+  def undo()
+    if @turn == 1
+      puts "これ以上undoできません!"
+      return false
+    else
+      @black = @pre_black.pop
+      @white = @pre_white.pop
+      @turn_player *= -1
+      @turn -= 1
+    end
+    true
+  end
+
+  def pass()
+    if count_movable_pos() != 0
+      return false
+    else
+      @pre_black.push(@black)
+      @pre_white.push(@white)
+    end
+    next_turn()
+    true
+  end
   
   def count_movable_pos()
     if @turn_player == 1
@@ -243,9 +275,9 @@ class Board
     else
       count_stone(create_movable_pos(@white, @black))
     end
-  end
-
-  def print_movable_pos()
+  end 
+  
+  def get_array_movable_pos()
     if @turn_player == 1
       # black
       mobility = create_movable_pos(@black, @white)
@@ -262,8 +294,11 @@ class Board
       end
       mask = mask << 1
     end
+    coordinates_list
+  end
 
-    p coordinates_list
+  def print_movable_pos()
+    p get_array_movable_pos()
   end
 
   def print_stone()
