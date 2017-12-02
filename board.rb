@@ -230,7 +230,7 @@ class Board
     counted = (counted & 0x00000000FFFFFFFF) + ((counted & 0xFFFFFFFF00000000) >> 32)
   end
   
-  def is_game_end()
+  def is_game_end?()
     if @black | @white == 0xffffffffffffffff \
     || count_stone(@black) == 0 \
     || count_stone(@white) == 0
@@ -246,7 +246,7 @@ class Board
   end
 
   def undo()
-    if @turn == 1
+    if @turn == 2 
       return false
     else
       @black = @pre_black.pop
