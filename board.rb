@@ -219,7 +219,9 @@ class Board
   end
   
   def is_game_end()
-    if @black | @white == 0xffffffffffffffff 
+    if @black | @white == 0xffffffffffffffff \
+    && count_stone(@black) == 0 \
+    && count_stone(@white) == 0
       true
     else
       false
