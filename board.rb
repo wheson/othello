@@ -8,8 +8,7 @@ class Board
   
   def transfer_point_to_bit(x, y)
     num = (y - 1) * 8 + (x - 1)
-    ret = 1 << num
-    return ret
+    1 << num
   end
 
   def transfer_bit_to_point(bit)
@@ -25,7 +24,7 @@ class Board
       num += 1
       mask = mask << 1
     end
-    return x, y
+    [x, y]
   end
 
   def create_reverse_bit(player, enemy, pos)
@@ -42,8 +41,7 @@ class Board
       tmp |= mask
       mask = (mask >> 1) & 0x7f7f7f7f7f7f7f7f
     end
-    if mask & player
-      puts "右 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
     
@@ -54,8 +52,7 @@ class Board
       tmp |= mask
       mask = (mask << 1) & 0xfefefefefefefefe
     end
-    if mask & player
-      puts "左 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
     
@@ -66,8 +63,7 @@ class Board
       tmp |= mask
       mask = (mask << 8) 
     end
-    if mask & player
-      puts "上 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
 
@@ -78,8 +74,7 @@ class Board
       tmp |= mask
       mask = (mask >> 8) 
     end
-    if mask & player
-      puts "下 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
 
@@ -90,8 +85,7 @@ class Board
       tmp |= mask
       mask = (mask << 7) & 0x7f7f7f7f7f7f7f7f
     end
-    if(mask & player) 
-      puts "右上 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
 
@@ -102,8 +96,7 @@ class Board
       tmp |= mask
       mask = (mask << 9) & 0xfefefefefefefefe
     end
-    if(mask & player) 
-      puts "左上 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
 
@@ -114,8 +107,7 @@ class Board
       tmp |= mask
       mask = (mask >> 9) & 0x7f7f7f7f7f7f7f7f
     end
-    if(mask & player) 
-      puts "右下 #{tmp}"
+    if mask & player != 0
       rev |= tmp
     end
     
@@ -126,13 +118,11 @@ class Board
       tmp |= mask
       mask = (mask >> 7) & 0xfefefefefefefefe
     end
-    if(mask & player) 
-      puts "左下 #{tmp}"
+    if mask & player != 0 
       rev |= tmp
     end
     
-    puts rev
-    return rev
+    rev
   end
   
   def put_stone(x, y)
@@ -145,8 +135,6 @@ class Board
       end
       @black ^= pos | rev
       @white ^= rev
-
-      return true
     else
       rev = create_reverse_bit(@white, @black, pos)
       if rev == 0
@@ -154,9 +142,8 @@ class Board
       end
       @white ^= pos | rev
       @black ^= rev
-
-      return true
     end
+    true
   end
   
   def create_movable_pos(player, enemy)
@@ -219,14 +206,23 @@ class Board
     5.times{t |= masked_enemy & (t >> 7)}
     mobility |= blank & (t >> 7)
     
-    return mobility
+    mobility
+  end
+  
+  def count_stone(counted)
+    counted = (counted & 0x5555555555555555) + ((counted & 0xAAAAAAAAAAAAAAAA) >> 1)
+    counted = (counted & 0x3333333333333333) + ((counted & 0xCCCCCCCCCCCCCCCC) >> 2)
+    counted = (counted & 0x0F0F0F0F0F0F0F0F) + ((counted & 0xF0F0F0F0F0F0F0F0) >> 4)
+    counted = (counted & 0x00FF00FF00FF00FF) + ((counted & 0xFF00FF00FF00FF00) >> 8)
+    counted = (counted & 0x0000FFFF0000FFFF) + ((counted & 0xFFFF0000FFFF0000) >> 16)
+    counted = (counted & 0x00000000FFFFFFFF) + ((counted & 0xFFFFFFFF00000000) >> 32)
   end
   
   def is_game_end()
-    if @black | @white == 0xffffffffffffffff
-      return true
+    if @black | @white == 0xffffffffffffffff 
+      true
     else
-      return false
+      false
     end
   end
 
@@ -274,6 +270,7 @@ class Board
 
       mask = mask << 1
     end
+    puts "black: #{count_stone(@black)}, white: #{count_stone(@white)}"
   end
 
   def print_result()
