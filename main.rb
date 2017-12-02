@@ -2,19 +2,21 @@ require './board.rb'
 
 if __FILE__ == $0
   board = Board.new
-  board.print_stone()
 
   while(board.is_game_end == false)
-    board.print_movable_pos()
+    board.print_stone()
+    board.print_info()
     
     print "手を入力してください: "
-    x = gets.to_i
-    y = gets.to_i
+    coordinate = gets
 
-    board.put_stone(x, y)
-
-    board.print_stone()
-    board.next_turn()
+    next_flag = board.put_stone(coordinate)
+    
+    if next_flag
+      board.next_turn()
+    else
+      puts "不正な手です! もう一度入力してください"
+    end
   end
 
   board.print_result()

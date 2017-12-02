@@ -4,9 +4,13 @@ class Board
     @black = 0x810000000
     @turn = 1
     @turn_player = 1
+    @player_color = {1 => 'black', -1 => 'white'}
   end
   
-  def transfer_point_to_bit(x, y)
+  def transfer_point_to_bit(coordinate)
+    split_array = coordinate.split("")
+    x = split_array[0].upcase.ord - 'A'.ord
+    y = split_array[1].ord - '1'.ord
     num = (y - 1) * 8 + (x - 1)
     1 << num
   end
@@ -14,17 +18,17 @@ class Board
   def transfer_bit_to_point(bit)
     mask = 1
     num = 0
-    x = 0
-    y = 0
+    x = ''
+    y = ''
     while mask <= 0x8000000000000000
       if bit & mask != 0
-        x = num % 8 + 1
-        y = num / 8 + 1
+        x = ((num % 8 + 1) + 'A'.ord).chr
+        y = ((num / 8 + 1) + '1'.ord).chr
       end
       num += 1
       mask = mask << 1
     end
-    [x, y]
+    x + y
   end
 
   def create_reverse_bit(player, enemy, pos)
@@ -125,8 +129,8 @@ class Board
     rev
   end
   
-  def put_stone(x, y)
-    pos = transfer_point_to_bit(x, y)
+  def put_stone(coordinate)
+    pos = transfer_point_to_bit(coordinate)
     
     if @turn_player == 1  
       rev = create_reverse_bit(@black, @white, pos)
@@ -246,8 +250,8 @@ class Board
     while mask <= 0x8000000000000000
       point = mobility & mask
       if point != 0
-        x, y = transfer_bit_to_point(point)
-        print "[#{x}, #{y}],"
+        coordinate = transfer_bit_to_point(point)
+        print "[#{coordinate}],"
       end
       mask = mask << 1
     end
@@ -256,7 +260,12 @@ class Board
 
   def print_stone()
     mask = 1
+    num = 0
+    puts "  A  B  C  D  E  F  G  H"
     while mask <= 0x8000000000000000
+      if mask & 0x0101010101010101 != 0
+        print "#{('1'.ord + num).chr} " 
+      end
       if @white & mask != 0
         print "●"
       elsif @black & mask != 0
@@ -268,11 +277,17 @@ class Board
 
       if mask & 0x8080808080808080 != 0
         print "\n"
+        num += 1
       end
 
       mask = mask << 1
     end
-    puts "black: #{count_stone(@black)}, white: #{count_stone(@white)}"
+  end
+  
+  def print_info()
+    puts "black: #{count_stone(@black)}, white: #{count_stone(@white)}, turn: #{@turn}"
+    puts "現在のプレイヤーは #{@player_color[@turn_player]} です"
+    print_movable_pos
   end
 
   def print_result()
