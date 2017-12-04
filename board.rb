@@ -5,10 +5,34 @@ class Board
     @pre_white = [0x1008000000]
     @pre_black = [0x810000000]
     @turn = 1
-    @turn_player = 1
-    @player_color = {1 => 'black', -1 => 'white'}
+    @current_color = 0
+    @player_color = ['black', 'white']
   end
   
+  def get_board(color)
+    if color == 0
+      return @black
+    else
+      return @white
+    end
+  end
+
+  def get_turn()
+    @turn
+  end
+
+  def get_current_color()
+    @current_color
+  end
+  
+  def get_count_stone(player)
+    if player == 0
+      count_stone(@black)
+    else
+      count_stone(@white)
+    end
+  end
+
   def transfer_point_to_bit(coordinates)
     split_array = coordinates.split("")
     x = split_array[0].upcase.ord - 'A'.ord + 1
@@ -134,7 +158,7 @@ class Board
   def put_stone(coordinates)
     pos = transfer_point_to_bit(coordinates)
         
-    if @turn_player == 1  
+    if @current_color == 0  
       rev = create_reverse_bit(@black, @white, pos)
       if rev == 0
         return false
@@ -241,17 +265,17 @@ class Board
   end
 
   def next_turn()
-    @turn_player *= -1
+    @current_color = (@current_color + 1) % 2
     @turn += 1
   end
 
   def undo()
-    if @turn == 2 
+    if @turn == 1
       return false
     else
       @black = @pre_black.pop
       @white = @pre_white.pop
-      @turn_player *= -1
+      @current_color = (@current_color - 1) % 2
       @turn -= 1
     end
     true
@@ -269,7 +293,7 @@ class Board
   end
   
   def count_movable_pos()
-    if @turn_player == 1
+    if @current_color == 0
       count_stone(create_movable_pos(@black, @white))
     else
       count_stone(create_movable_pos(@white, @black))
@@ -277,7 +301,7 @@ class Board
   end 
   
   def get_array_movable_pos()
-    if @turn_player == 1
+    if @current_color == 0
       # black
       mobility = create_movable_pos(@black, @white)
     else
@@ -328,7 +352,7 @@ class Board
   
   def print_info()
     puts "black: #{count_stone(@black)}, white: #{count_stone(@white)}, turn: #{@turn}"
-    puts "現在のプレイヤーは #{@player_color[@turn_player]} です"
+    puts "現在のプレイヤーは #{@player_color[@current_color]} です"
     print_movable_pos
   end
 

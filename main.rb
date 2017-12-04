@@ -2,8 +2,6 @@ require './board.rb'
 require './ai.rb'
 
 def select_player(board)
-  board.print_stone()
-  board.print_info()
   next_flag = false
   
   while next_flag == false
@@ -12,16 +10,14 @@ def select_player(board)
     coordinates = gets
     if coordinates.ord == 'u'.ord
       2.times{
-        undo_flag = board.undo()
-        if undo_flag == false
+        next_flag = board.undo()
+        if next_flag == false
           puts "これ以上undoできません!"
           break
         else
           puts "undoしました"
         end
       }
-      board.print_stone()
-      board.print_info()
     elsif coordinates.ord == 'p'.ord
       next_flag = board.pass()
       if next_flag == false
@@ -39,21 +35,23 @@ end
 if __FILE__ == $0
   board = Board.new
   ai = Ai.new
-  print "先手後手を選んでください(1: 先手, 1以外: 後手): "
+  print "先手後手を選んでください(0: 先手, 0以外: 後手): "
   
-  if gets().to_i == 1
-    player = 1
+  if gets().to_i == 0 
+    player = board.get_current_color()
   else
-    player = -1
+    player = (board.get_current_color() + 1) % 2
   end
 
   while board.is_game_end? == false
-    if player == 1
+    board.print_stone()
+    board.print_info()
+    if player == board.get_current_color()
       select_player(board)
     else
+      puts "コンピュータが思考中です..."
       ai.move(board)
     end
-    player *= -1
   end
 
   board.print_result()
