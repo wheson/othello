@@ -15,7 +15,7 @@ class Ai
                     ]
     @corner_coordinates = ['A1', 'H1', 'A8', 'H8']
     @presearch_depth = 3
-    @normal_depth = 8
+    @normal_depth = 7
     @wld_depth = 6
     @perfect_depth = 6
   end
@@ -35,7 +35,7 @@ class Ai
         if board.get_board(my_color) & mask != 0
           sum += @score_board[num]  
         end
-        if board.get_board(-my_color) & mask != 0
+        if board.get_board((my_color + 1) % 2) & mask != 0
           sum -= @score_board[num]
         end
         mask = mask << 1
