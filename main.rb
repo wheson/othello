@@ -50,7 +50,7 @@ if __FILE__ == $0
       select_player(board)
     else
       puts "コンピュータが思考中です..."
-      ai.minmax_move(board)
+      ai.negamax_move(board)
     end
   end
 

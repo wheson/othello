@@ -16,12 +16,12 @@ class Ai
     @corner_coordinates = ['A1', 'H1', 'A8', 'H8']
     @presearch_depth = 3
     @normal_depth = 7
-    @wld_depth = 6
-    @perfect_depth = 6
   end
   
   def evaluate(board, my_color)
+    # ゲーム終了しているとき
     if board.is_game_end?()
+      # 自石が敵石の数より大きいとき 
       if board.get_count_stone(my_color) > board.get_count_stone((my_color + 1) % 2)
         return 1000
       else
@@ -41,6 +41,11 @@ class Ai
         mask = mask << 1
         num += 1
       end
+
+      # 着手可能数
+      sum += board.count_movable_pos(my_color)
+      sum -= board.count_movable_pos((my_color + 1) % 2)
+
     end
     sum
   end
@@ -160,7 +165,7 @@ class Ai
     limit = 0
     mobility_coordinates_array = sort(board, mobility_coordinates_array, @presearch_depth)
 
-    if MAX_TURN - board.get_turn() <= @wld_depth
+    if MAX_TURN - board.get_turn() <= @normal_depth
       limit = MAX_TURN - board.get_turn()
     else
       limit = @normal_depth
