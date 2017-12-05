@@ -14,7 +14,7 @@ class Ai
                      30,  -12,   0,  -1,  -1,   0, -12,  30
                     ]
     @presearch_depth = 3
-    @normal_depth = 6
+    @normal_depth = 7
     @wld_depth = 6
     @perfect_depth = 6
   end
@@ -141,6 +141,8 @@ class Ai
     end
     
     limit = 0
+    mobility_coordinates_array = sort(board, mobility_coordinates_array, @presearch_depth)
+
     if MAX_TURN - board.get_turn() <= @wld_depth
       limit = MAX_TURN - board.get_turn()
     else
@@ -149,15 +151,15 @@ class Ai
     
     decide_coordinates = mobility_coordinates_array[0]
 
-    eval_max = -INT_MAX
     alpha = -INT_MAX
     beta = INT_MAX
-
+    
     mobility_coordinates_array.each do |coordinates|
       board.put_stone(coordinates)
       eval = negamax(board, limit-1, alpha, beta, my_color)
       board.undo()
-      if eval > eval_max
+      if eval > alpha
+        alpha = eval
         decide_coordinates = coordinates
       end
     end
@@ -166,6 +168,35 @@ class Ai
     board.put_stone(decide_coordinates)  
   end
   
+  def sort(board, mobility_coordinates_array, limit)
+    evals = []
+    ret_mobility_coordinates_array = []
+    my_color = board.get_current_color()
+
+    mobility_coordinates_array.each do |coordinates|
+      board.put_stone(coordinates)
+      eval = -negamax(board, limit-1, -INT_MAX, INT_MAX, my_color)
+      board.undo()
+
+      if evals.length == 0
+        evals.push(eval)
+        ret_mobility_coordinates_array.push(coordinates)
+      else
+        index = 0
+        evals.each do |e|
+          if e < eval
+            break
+          end
+          index += 1
+        end
+        evals.insert(index, eval)
+        ret_mobility_coordinates_array.insert(index, coordinates)   
+      end
+    end
+
+    ret_mobility_coordinates_array
+  end
+
   def negamax(board, limit, alpha, beta, my_color)
     if limit == 0 || board.is_game_end?()
       return evaluate(board, my_color)
