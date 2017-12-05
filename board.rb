@@ -257,7 +257,7 @@ class Board
   def is_game_end?()
     if @black | @white == 0xffffffffffffffff \
     || count_stone(count_movable_pos(@current_color)) == 0 \
-    || count_stone(count_movable_pos((@current_color+1)%2)) == 0 
+    && count_stone(count_movable_pos((@current_color+1)%2)) == 0 
       true
     else
       false
