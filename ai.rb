@@ -13,25 +13,34 @@ class Ai
                     -12,  -15,  -3,  -3,  -3,  -3, -15, -12,
                      30,  -12,   0,  -1,  -1,   0, -12,  30
                     ]
+    @corner_coordinates = ['A1', 'H1', 'A8', 'H8']
     @presearch_depth = 3
-    @normal_depth = 7
+    @normal_depth = 8
     @wld_depth = 6
     @perfect_depth = 6
   end
   
   def evaluate(board, my_color)
-    mask = 1
-    sum = 0
-    num = 0
-    while mask != 0x8000000000000000
-      if board.get_board(my_color) & mask != 0
-        sum += @score_board[num]  
+    if board.is_game_end?()
+      if board.get_count_stone(my_color) > board.get_count_stone((my_color + 1) % 2)
+        return 1000
+      else
+        return -1000
       end
-      if board.get_board(-my_color) & mask != 0
-        sum -= @score_board[num]
+    else
+      mask = 1
+      sum = 0
+      num = 0
+      while mask != 0x8000000000000000
+        if board.get_board(my_color) & mask != 0
+          sum += @score_board[num]  
+        end
+        if board.get_board(-my_color) & mask != 0
+          sum -= @score_board[num]
+        end
+        mask = mask << 1
+        num += 1
       end
-      mask = mask << 1
-      num += 1
     end
     sum
   end
@@ -140,6 +149,14 @@ class Ai
       return
     end
     
+    #角が取れるときは必ず取る
+    @corner_coordinates.each do |corner|
+      if mobility_coordinates_array.include?(corner)
+        board.put_stone(corner)
+        return
+      end
+    end
+
     limit = 0
     mobility_coordinates_array = sort(board, mobility_coordinates_array, @presearch_depth)
 
