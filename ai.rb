@@ -74,12 +74,19 @@ class Ai
   end
   
   def maxlevel(board, limit, my_color)
-    if limit == 0
+    if limit == 0 || board.is_game_end?()
       return evaluate(board, my_color)
     end
 
     mobility_coordinates_array = board.get_array_movable_pos()
     
+    if mobility_coordinates_array.length == 0
+      board.pass()
+      score = minlevel(board, limit-1, my_color)
+      board.undo()
+      return score
+    end
+
     score_max = -INT_MAX
     mobility_coordinates_array.each do |coordinates|
       board.put_stone(coordinates)
@@ -94,11 +101,18 @@ class Ai
   end
   
   def minlevel(board, limit, my_color)
-    if limit == 0
+    if limit == 0 || board.is_game_end?()
       return evaluate(board, -my_color)
     end
 
     mobility_coordinates_array = board.get_array_movable_pos()
+
+    if mobility_coordinates_array.length == 0
+      board.pass()
+      score = maxlevel(board, limit-1, my_color)
+      board.undo()
+      return score
+    end
 
     score_min = INT_MAX
     mobility_coordinates_array.each do |coordinates|
@@ -114,7 +128,71 @@ class Ai
   end
   
   def negamax_move(board)
+    mobility_coordinates_array = board.get_array_movable_pos()
+    my_color = board.get_current_color()
+    if mobility_coordinates_array.empty?
+      board.pass()
+      return
+    end
 
+    if mobility_coordinates_array.length() == 1
+      board.put_stone(mobility_coordinates_array[0])
+      return
+    end
+    
+    limit = 0
+    if MAX_TURN - board.get_turn() <= @wld_depth
+      limit = MAX_TURN - board.get_turn()
+    else
+      limit = @normal_depth
+    end
+    
+    decide_coordinates = mobility_coordinates_array[0]
+
+    eval_max = -INT_MAX
+    alpha = -INT_MAX
+    beta = INT_MAX
+
+    mobility_coordinates_array.each do |coordinates|
+      board.put_stone(coordinates)
+      eval = negamax(board, limit-1, alpha, beta, my_color)
+      board.undo()
+      if eval > eval_max
+        decide_coordinates = coordinates
+      end
+    end
+    
+    #puts decide_coordinates
+    board.put_stone(decide_coordinates)  
   end
   
+  def negamax(board, limit, alpha, beta, my_color)
+    if limit == 0 || board.is_game_end?()
+      return evaluate(board, my_color)
+    end
+
+    mobility_coordinates_array = board.get_array_movable_pos()
+    
+    if mobility_coordinates_array.length == 0
+      board.pass()
+      score = -negamax(board, limit, -beta, -alpha, my_color)
+      board.undo()
+      return score
+    end
+
+    # 着手可能場所をすべて回す
+    mobility_coordinates_array.each do |coordinates|
+      board.put_stone(coordinates)
+      score = -negamax(board, limit-1, -beta, -alpha, my_color)
+      board.undo()
+      
+      if score >= beta
+        return score
+      end
+      
+      alpha = [alpha, score].max
+    end
+    alpha  
+  end
+
 end

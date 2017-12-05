@@ -29,7 +29,7 @@ if __FILE__ == $0
       if player == board.get_current_color()
         select_random(board)
       else
-        ai.minmax_move(board)
+        ai.negamax_move(board)
       end
       board.print_stone()
     end
