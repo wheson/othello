@@ -256,8 +256,8 @@ class Board
   
   def is_game_end?()
     if @black | @white == 0xffffffffffffffff \
-    || count_stone(@black) == 0 \
-    || count_stone(@white) == 0
+    || count_stone(count_movable_pos(@current_color)) == 0 \
+    || count_stone(count_movable_pos((@current_color+1)%2)) == 0 
       true
     else
       false
@@ -282,7 +282,7 @@ class Board
   end
 
   def pass()
-    if count_movable_pos() != 0
+    if count_movable_pos(@current_color) != 0
       return false
     else
       @pre_black.push(@black)
@@ -292,8 +292,8 @@ class Board
     true
   end
   
-  def count_movable_pos()
-    if @current_color == 0
+  def count_movable_pos(color)
+    if color == 0
       count_stone(create_movable_pos(@black, @white))
     else
       count_stone(create_movable_pos(@white, @black))

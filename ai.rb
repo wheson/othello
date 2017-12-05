@@ -19,7 +19,24 @@ class Ai
     @perfect_depth = 6
   end
   
-  def move(board)
+  def evaluate(board, my_color)
+    mask = 1
+    sum = 0
+    num = 0
+    while mask != 0x8000000000000000
+      if board.get_board(my_color) & mask != 0
+        sum += @score_board[num]  
+      end
+      if board.get_board(-my_color) & mask != 0
+        sum -= @score_board[num]
+      end
+      mask = mask << 1
+      num += 1
+    end
+    sum
+  end
+  
+  def minmax_move(board)
     mobility_coordinates_array = board.get_array_movable_pos()
     my_color = board.get_current_color()
     if mobility_coordinates_array.empty?
@@ -95,22 +112,9 @@ class Ai
 
     score_min
   end
+  
+  def negamax_move(board)
 
-  def evaluate(board, my_color)
-    mask = 1
-    sum = 0
-    num = 0
-    while mask != 0x8000000000000000
-      if board.get_board(my_color) & mask != 0
-        sum += @score_board[num]  
-      end
-      if board.get_board(-my_color) & mask != 0
-        sum -= @score_board[num]
-      end
-      mask = mask << 1
-      num += 1
-    end
-    sum
   end
-
+  
 end
