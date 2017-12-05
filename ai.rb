@@ -43,9 +43,11 @@ class Ai
       end
 
       # 着手可能数
-      sum += board.count_movable_pos(my_color)
-      sum -= board.count_movable_pos((my_color + 1) % 2)
-
+      if board.get_current_color() == my_color
+        sum += board.count_movable_pos(board.get_current_color())
+      else
+        sum -= board.count_movable_pos(board.get_current_color())
+      end
     end
     sum
   end

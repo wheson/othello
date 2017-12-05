@@ -6,7 +6,7 @@ class Board
     @pre_black = [0x810000000]
     @turn = 1
     @current_color = 0
-    @player_color = ['black', 'white']
+    @player_color = ['x', 'o']
   end
   
   def get_board(color)
