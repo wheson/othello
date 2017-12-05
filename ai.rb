@@ -4,18 +4,18 @@ class Ai
 
   def initialize()
     @score_board = [
-                     30,  -12,   0,  -1,  -1,   0, -12,  30,
-                    -12,  -15,  -3,  -3,  -3,  -3, -15, -12,
+                     50,  -20,   0,  -1,  -1,   0, -20,  50,
+                    -20,  -30,  -3,  -3,  -3,  -3, -30, -20,
                       0,   -3,   0,  -1,  -1,   0,  -3,  20,
                      -1,   -3,  -1,  -1,  -1,  -1,  -3,  -1,
                      -1,   -3,  -1,  -1,  -1,  -1,  -3,  -1,
                       0,   -3,   0,  -1,  -1,   0,  -3,  20,
-                    -12,  -15,  -3,  -3,  -3,  -3, -15, -12,
-                     30,  -12,   0,  -1,  -1,   0, -12,  30
+                    -20,  -30,  -3,  -3,  -3,  -3, -30, -20,
+                     50,  -20,   0,  -1,  -1,   0, -20,  50
                     ]
     @corner_coordinates = ['A1', 'H1', 'A8', 'H8']
     @presearch_depth = 3
-    @normal_depth = 7
+    @normal_depth = 8
   end
   
   def evaluate(board, my_color)
@@ -182,13 +182,14 @@ class Ai
       board.put_stone(coordinates)
       eval = negamax(board, limit-1, alpha, beta, my_color)
       board.undo()
+      puts "coordinates: #{coordinates} eval: #{eval}"
       if eval > alpha
         alpha = eval
         decide_coordinates = coordinates
       end
     end
     
-    #puts decide_coordinates
+    puts decide_coordinates
     board.put_stone(decide_coordinates)  
   end
   
@@ -201,6 +202,7 @@ class Ai
       board.put_stone(coordinates)
       eval = -negamax(board, limit-1, -INT_MAX, INT_MAX, my_color)
       board.undo()
+      puts "[pre] coordinates: #{coordinates} eval: #{eval}"
 
       if evals.length == 0
         evals.push(eval)
@@ -217,7 +219,7 @@ class Ai
         ret_mobility_coordinates_array.insert(index, coordinates)   
       end
     end
-
+    
     ret_mobility_coordinates_array
   end
 
@@ -230,7 +232,7 @@ class Ai
     
     if mobility_coordinates_array.length == 0
       board.pass()
-      score = -negamax(board, limit, -beta, -alpha, my_color)
+      score = -negamax(board, limit-1, -beta, -alpha, my_color)
       board.undo()
       return score
     end
