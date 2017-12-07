@@ -57,16 +57,15 @@ class Ai
     
     mobility_coordinates_array.each do |coordinates|
       current_time = Time.now().to_i
-      if current_time - @begin_time >= 240
-        puts "4分経過したので現在の最善手を打ちます"
-        board.put_stone(decide_coordinates)
-        return
-      end
+      #if current_time - @begin_time >= 240
+      #  puts "4分経過したので現在の最善手を打ちます"
+      #  board.put_stone(decide_coordinates)
+      #  return
+      #end
       board.put_stone(coordinates)
       eval = -negamax(board, limit-1, -beta, -alpha)
       board.undo()
-      current_time = Time.now().to_i
-      puts "coordinates: #{coordinates}, eval: #{eval}, duration: #{current_time - @begin_time}[sec]"
+      puts "coordinates: #{coordinates}, eval: #{eval}, duration: #{Time.now().to_i - @begin_time}[sec]"
       if eval > alpha
         alpha = eval
         decide_coordinates = coordinates
@@ -106,7 +105,8 @@ class Ai
   end
 
   def negamax(board, limit, alpha, beta)
-    if limit == 0 || board.is_game_end?()
+    if limit == 0 || board.is_game_end?() \
+    || Time.now().to_i - @begin_time >= 280
       return @evaluator.evaluate(board)
     end
 
