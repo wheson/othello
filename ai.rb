@@ -16,39 +16,75 @@ class Ai
     @corner_coordinates = ['A1', 'H1', 'A8', 'H8']
     @presearch_depth = 3
     @normal_depth = 8
+    @perfect_depth = 15
   end
   
-  def evaluate(board, my_color)
-    # ゲーム終了しているとき
-    if board.is_game_end?()
-      # 自石が敵石の数より大きいとき 
-      if board.get_count_stone(my_color) > board.get_count_stone((my_color + 1) % 2)
-        return 1000
-      else
-        return -1000
-      end
-    else
-      mask = 1
-      sum = 0
-      num = 0
-      while mask != 0x8000000000000000
-        if board.get_board(my_color) & mask != 0
-          sum += @score_board[num]  
-        end
-        if board.get_board((my_color + 1) % 2) & mask != 0
-          sum -= @score_board[num]
-        end
-        mask = mask << 1
-        num += 1
-      end
-
-      # 着手可能数
-      if board.get_current_color() == my_color
-        sum += board.count_movable_pos(board.get_current_color())
-      else
-        sum -= board.count_movable_pos(board.get_current_color())
-      end
+  def is_corner?(board)
+    stone = board.get_board(0) | board.get_board(1)
+    if stone & 0x8000000000000000 != 0
+      @score_board[1] = 0
+      @score_board[8] = 0
+      @score_board[9] = 0
+    else  
+      @score_board[1] = -20
+      @score_board[8] = -20
+      @score_board[9] = -30
     end
+    if stone & 1 != 0
+      @score_board[62] = 0
+      @score_board[55] = 0
+      @score_board[54] = 0
+    else  
+      @score_board[62] = -20
+      @score_board[55] = -20
+      @score_board[54] = -30
+    end
+    if stone & 0x80 != 0
+      @score_board[57] = 0
+      @score_board[49] = 0
+      @score_board[48] = 0
+    else  
+      @score_board[57] = -20
+      @score_board[49] = -30
+      @score_board[48] = -20
+    end
+    if stone & 0x100000000000000 != 0
+      @score_board[6] = 0
+      @score_board[14] = 0
+      @score_board[15] = 0
+    else  
+      @score_board[6] = -20
+      @score_board[14] = -30
+      @score_board[15] = -20
+    end
+  end
+
+  def evaluate(board, my_color)
+    # 角が取られているときはその周辺を変更
+    is_corner?(board)
+
+    mask = 1
+    sum = 0
+    num = 0
+    while mask != 0x8000000000000000
+      if board.get_board(my_color) & mask != 0
+        sum += @score_board[num]  
+      end
+      if board.get_board((my_color + 1) % 2) & mask != 0
+        sum -= @score_board[num]
+      end
+      mask = mask << 1
+      num += 1
+    end
+
+    # 着手可能数
+    if board.get_current_color() == my_color
+      sum += board.count_movable_pos(board.get_current_color()) * 5
+    else
+      sum -= board.count_movable_pos(board.get_current_color()) * 5
+    end
+    #puts "sum: #{sum}"
+    #board.print_stone()
     sum
   end
   
@@ -167,8 +203,8 @@ class Ai
     limit = 0
     mobility_coordinates_array = sort(board, mobility_coordinates_array, @presearch_depth)
 
-    if MAX_TURN - board.get_turn() <= @normal_depth
-      limit = MAX_TURN - board.get_turn()
+    if MAX_TURN - board.get_turn() <= @perfect_depth
+      limit = @perfect_depth
     else
       limit = @normal_depth
     end
@@ -180,7 +216,7 @@ class Ai
     
     mobility_coordinates_array.each do |coordinates|
       board.put_stone(coordinates)
-      eval = negamax(board, limit-1, alpha, beta, my_color)
+      eval = -negamax(board, limit-1, -beta, -alpha, my_color)
       board.undo()
       puts "coordinates: #{coordinates} eval: #{eval}"
       if eval > alpha
