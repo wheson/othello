@@ -31,6 +31,7 @@ class Ai
     #角が取れるときは必ず取る
     @corner_coordinates.each do |corner|
       if mobility_coordinates_array.include?(corner)
+        puts "AIは #{corner} を選択しました"
         board.put_stone(corner)
         return
       end
