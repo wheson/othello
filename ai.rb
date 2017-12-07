@@ -31,7 +31,8 @@ class Ai
     #角が取れるときは必ず取る
     @corner_coordinates.each do |corner|
       if mobility_coordinates_array.include?(corner)
-        puts "AIは #{corner} を選択しました"
+        puts "\nAIは #{corner} を選択しました"
+        print "\n"
         board.put_stone(corner)
         return
       end
@@ -58,11 +59,6 @@ class Ai
     
     mobility_coordinates_array.each do |coordinates|
       current_time = Time.now().to_i
-      #if current_time - @begin_time >= 240
-      #  puts "4分経過したので現在の最善手を打ちます"
-      #  board.put_stone(decide_coordinates)
-      #  return
-      #end
       board.put_stone(coordinates)
       eval = -negamax(board, limit-1, -beta, -alpha)
       board.undo()
@@ -73,7 +69,8 @@ class Ai
       end
     end
     
-    puts "AIは #{decide_coordinates} を選択しました"
+    puts "\nAIは #{decide_coordinates} を選択しました"
+    print "\n"
     board.put_stone(decide_coordinates)  
   end
   
