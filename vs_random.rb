@@ -23,7 +23,11 @@ if __FILE__ == $0
 
   vs_num.times do |i|
     board = Board.new
-    player = i % 2
+    if i % 2 == 0
+      player = 1
+    else
+      player = -1
+    end
 
     while board.is_game_end? == false
       if player == board.get_current_color()
@@ -34,10 +38,10 @@ if __FILE__ == $0
       board.print_stone()
     end
 
-    if board.get_count_stone(player) < board.get_count_stone((player + 1) % 2)
+    if board.get_count_stone(player) < board.get_count_stone(-player)
       puts "AI win"
       ai_win_counts += 1
-    elsif board.get_count_stone(player) == board.get_count_stone((player + 1) % 2)
+    elsif board.get_count_stone(player) == board.get_count_stone(-player)
       puts "AI draw"
       ai_draw_counts += 1
     else

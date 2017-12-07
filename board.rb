@@ -5,12 +5,12 @@ class Board
     @pre_white = [0x1008000000]
     @pre_black = [0x810000000]
     @turn = 1
-    @current_color = 0
-    @player_color = ['x', 'o']
+    @current_color = 1
+    @player_color = {1 => 'x', -1 => 'o'}
   end
   
   def get_board(color)
-    if color == 0
+    if color == 1
       return @black
     else
       return @white
@@ -26,7 +26,7 @@ class Board
   end
   
   def get_count_stone(player)
-    if player == 0
+    if player == 1
       count_stone(@black)
     else
       count_stone(@white)
@@ -158,7 +158,7 @@ class Board
   def put_stone(coordinates)
     pos = transfer_point_to_bit(coordinates)
         
-    if @current_color == 0  
+    if @current_color == 1  
       rev = create_reverse_bit(@black, @white, pos)
       if rev == 0
         return false
@@ -257,7 +257,7 @@ class Board
   def is_game_end?()
     if @black | @white == 0xffffffffffffffff \
     || count_stone(count_movable_pos(@current_color)) == 0 \
-    && count_stone(count_movable_pos((@current_color+1)%2)) == 0 
+    && count_stone(count_movable_pos(-@current_color)) == 0 
       true
     else
       false
@@ -265,7 +265,7 @@ class Board
   end
 
   def next_turn()
-    @current_color = (@current_color + 1) % 2
+    @current_color = -@current_color 
     @turn += 1
   end
 
@@ -275,7 +275,7 @@ class Board
     else
       @black = @pre_black.pop
       @white = @pre_white.pop
-      @current_color = (@current_color - 1) % 2
+      @current_color = -@current_color
       @turn -= 1
     end
     true
@@ -293,7 +293,7 @@ class Board
   end
   
   def count_movable_pos(color)
-    if color == 0
+    if color == 1
       count_stone(create_movable_pos(@black, @white))
     else
       count_stone(create_movable_pos(@white, @black))
@@ -301,7 +301,7 @@ class Board
   end 
   
   def get_array_movable_pos()
-    if @current_color == 0
+    if @current_color == 1
       # black
       mobility = create_movable_pos(@black, @white)
     else

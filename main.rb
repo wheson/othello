@@ -35,12 +35,12 @@ end
 if __FILE__ == $0
   board = Board.new
   ai = Ai.new
-  print "先手後手を選んでください(0: 先手, 0以外: 後手): "
+  print "先手後手を選んでください(1: 先手, 1以外: 後手): "
   
-  if gets().to_i == 0 
+  if gets().to_i == 1 
     player = board.get_current_color()
   else
-    player = (board.get_current_color() + 1) % 2
+    player = -board.get_current_color()
   end
 
   while board.is_game_end? == false

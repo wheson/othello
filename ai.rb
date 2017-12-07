@@ -1,187 +1,23 @@
+require './evaluator'
+
 class Ai
   MAX_TURN = 60
   INT_MAX = 99999
 
   def initialize()
-    @score_board = [
-                     50,  -20,   0,  -1,  -1,   0, -20,  50,
-                    -20,  -30,  -3,  -3,  -3,  -3, -30, -20,
-                      0,   -3,   0,  -1,  -1,   0,  -3,  20,
-                     -1,   -3,  -1,  -1,  -1,  -1,  -3,  -1,
-                     -1,   -3,  -1,  -1,  -1,  -1,  -3,  -1,
-                      0,   -3,   0,  -1,  -1,   0,  -3,  20,
-                    -20,  -30,  -3,  -3,  -3,  -3, -30, -20,
-                     50,  -20,   0,  -1,  -1,   0, -20,  50
-                    ]
     @corner_coordinates = ['A1', 'H1', 'A8', 'H8']
     @presearch_depth = 3
-    @normal_depth = 8
-    @perfect_depth = 15
+    @normal_depth = 7
+    @wld_depth = 15
+    @perfect_depth = 13
+    @evaluator = MidEvaluator.new
+    @begin_time = Time.now().to_i
   end
-  
-  def is_corner?(board)
-    stone = board.get_board(0) | board.get_board(1)
-    if stone & 0x8000000000000000 != 0
-      @score_board[1] = 0
-      @score_board[8] = 0
-      @score_board[9] = 0
-    else  
-      @score_board[1] = -20
-      @score_board[8] = -20
-      @score_board[9] = -30
-    end
-    if stone & 1 != 0
-      @score_board[62] = 0
-      @score_board[55] = 0
-      @score_board[54] = 0
-    else  
-      @score_board[62] = -20
-      @score_board[55] = -20
-      @score_board[54] = -30
-    end
-    if stone & 0x80 != 0
-      @score_board[57] = 0
-      @score_board[49] = 0
-      @score_board[48] = 0
-    else  
-      @score_board[57] = -20
-      @score_board[49] = -30
-      @score_board[48] = -20
-    end
-    if stone & 0x100000000000000 != 0
-      @score_board[6] = 0
-      @score_board[14] = 0
-      @score_board[15] = 0
-    else  
-      @score_board[6] = -20
-      @score_board[14] = -30
-      @score_board[15] = -20
-    end
-  end
-
-  def evaluate(board, my_color)
-    # 角が取られているときはその周辺を変更
-    is_corner?(board)
-
-    mask = 1
-    sum = 0
-    num = 0
-    while mask != 0x8000000000000000
-      if board.get_board(my_color) & mask != 0
-        sum += @score_board[num]  
-      end
-      if board.get_board((my_color + 1) % 2) & mask != 0
-        sum -= @score_board[num]
-      end
-      mask = mask << 1
-      num += 1
-    end
-
-    # 着手可能数
-    if board.get_current_color() == my_color
-      sum += board.count_movable_pos(board.get_current_color()) * 5
-    else
-      sum -= board.count_movable_pos(board.get_current_color()) * 5
-    end
-    #puts "sum: #{sum}"
-    #board.print_stone()
-    sum
-  end
-  
-  def minmax_move(board)
-    mobility_coordinates_array = board.get_array_movable_pos()
-    my_color = board.get_current_color()
-    if mobility_coordinates_array.empty?
-      board.pass()
-      return
-    end
-
-    if mobility_coordinates_array.length() == 1
-      board.put_stone(mobility_coordinates_array[0])
-      return
-    end
-    
-    limit = 0
-    if MAX_TURN - board.get_turn() <= @wld_depth
-      limit = MAX_TURN - board.get_turn()
-    else
-      limit = @normal_depth
-    end
-    
-    decide_coordinates = mobility_coordinates_array[0]
-
-    eval_max = -INT_MAX
-
-    mobility_coordinates_array.each do |coordinates|
-      board.put_stone(coordinates)
-      eval = minlevel(board, limit-1, my_color)
-      board.undo()
-      if eval > eval_max
-        decide_coordinates = coordinates
-      end
-    end
-    
-    #puts decide_coordinates
-    board.put_stone(decide_coordinates)
-  end
-  
-  def maxlevel(board, limit, my_color)
-    if limit == 0 || board.is_game_end?()
-      return evaluate(board, my_color)
-    end
-
-    mobility_coordinates_array = board.get_array_movable_pos()
-    
-    if mobility_coordinates_array.length == 0
-      board.pass()
-      score = minlevel(board, limit-1, my_color)
-      board.undo()
-      return score
-    end
-
-    score_max = -INT_MAX
-    mobility_coordinates_array.each do |coordinates|
-      board.put_stone(coordinates)
-      score = minlevel(board, limit-1, my_color)
-      board.undo()
-      if score > score_max
-        score_max = score
-      end
-    end
-
-    score_max
-  end
-  
-  def minlevel(board, limit, my_color)
-    if limit == 0 || board.is_game_end?()
-      return evaluate(board, -my_color)
-    end
-
-    mobility_coordinates_array = board.get_array_movable_pos()
-
-    if mobility_coordinates_array.length == 0
-      board.pass()
-      score = maxlevel(board, limit-1, my_color)
-      board.undo()
-      return score
-    end
-
-    score_min = INT_MAX
-    mobility_coordinates_array.each do |coordinates|
-      board.put_stone(coordinates)
-      score = maxlevel(board, limit-1, my_color)
-      board.undo()
-      if score_min > score
-        score_min = score
-      end
-    end
-
-    score_min
-  end
-  
+ 
   def negamax_move(board)
+    @begin_time = Time.now().to_i
+    @evaluator = MidEvaluator.new
     mobility_coordinates_array = board.get_array_movable_pos()
-    my_color = board.get_current_color()
     if mobility_coordinates_array.empty?
       board.pass()
       return
@@ -203,8 +39,13 @@ class Ai
     limit = 0
     mobility_coordinates_array = sort(board, mobility_coordinates_array, @presearch_depth)
 
-    if MAX_TURN - board.get_turn() <= @perfect_depth
-      limit = @perfect_depth
+    if MAX_TURN - board.get_turn() <= @wld_depth
+      limit = INT_MAX
+      if MAX_TURN - board.get_turn() <= @perfect_depth
+        @evaluator = PerfectEvaluator.new
+      else
+        @evaluator = WLDEvaluator.new
+      end
     else
       limit = @normal_depth
     end
@@ -215,28 +56,33 @@ class Ai
     beta = INT_MAX
     
     mobility_coordinates_array.each do |coordinates|
+      current_time = Time.now().to_i
+      if current_time - @begin_time >= 240
+        puts "4分経過したので現在の最善手を打ちます"
+        board.put_stone(decide_coordinates)
+        return
+      end
       board.put_stone(coordinates)
-      eval = -negamax(board, limit-1, -beta, -alpha, my_color)
+      eval = -negamax(board, limit-1, -beta, -alpha)
       board.undo()
-      puts "coordinates: #{coordinates} eval: #{eval}"
+      current_time = Time.now().to_i
+      puts "coordinates: #{coordinates}, eval: #{eval}, duration: #{current_time - @begin_time}[sec]"
       if eval > alpha
         alpha = eval
         decide_coordinates = coordinates
       end
     end
     
-    puts decide_coordinates
+    puts "AIは #{decide_coordinates} を選択しました"
     board.put_stone(decide_coordinates)  
   end
   
   def sort(board, mobility_coordinates_array, limit)
     evals = []
     ret_mobility_coordinates_array = []
-    my_color = board.get_current_color()
-
     mobility_coordinates_array.each do |coordinates|
       board.put_stone(coordinates)
-      eval = -negamax(board, limit-1, -INT_MAX, INT_MAX, my_color)
+      eval = -negamax(board, limit-1, -INT_MAX, INT_MAX)
       board.undo()
       puts "[pre] coordinates: #{coordinates} eval: #{eval}"
 
@@ -259,16 +105,16 @@ class Ai
     ret_mobility_coordinates_array
   end
 
-  def negamax(board, limit, alpha, beta, my_color)
+  def negamax(board, limit, alpha, beta)
     if limit == 0 || board.is_game_end?()
-      return evaluate(board, my_color)
+      return @evaluator.evaluate(board)
     end
 
     mobility_coordinates_array = board.get_array_movable_pos()
     
     if mobility_coordinates_array.length == 0
       board.pass()
-      score = -negamax(board, limit-1, -beta, -alpha, my_color)
+      score = -negamax(board, limit, -beta, -alpha)
       board.undo()
       return score
     end
@@ -276,7 +122,7 @@ class Ai
     # 着手可能場所をすべて回す
     mobility_coordinates_array.each do |coordinates|
       board.put_stone(coordinates)
-      score = -negamax(board, limit-1, -beta, -alpha, my_color)
+      score = -negamax(board, limit-1, -beta, -alpha)
       board.undo()
       
       if score >= beta
