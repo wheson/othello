@@ -4,7 +4,7 @@ class Board
     @black = 0x810000000
     @pre_white = [0x1008000000]
     @pre_black = [0x810000000]
-    @turn = 1
+    @turn = 0
     @current_color = 1
     @player_color = {1 => 'x', -1 => 'o'}
   end
@@ -266,7 +266,7 @@ class Board
 
   def next_turn()
     @current_color = -@current_color 
-    @turn += 1
+    @turn = get_count_stone(1) + get_count_stone(-1) - 4 
   end
 
   def undo()
